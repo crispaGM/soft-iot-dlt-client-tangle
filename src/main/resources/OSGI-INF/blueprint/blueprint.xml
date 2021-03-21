@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0"
+           xsi:schemaLocation="
+             http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0 http://aries.apache.org/schemas/blueprint-cm/blueprint-cm-1.1.0.xsd
+             http://www.osgi.org/xmlns/blueprint/v1.0.0 https://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd">
+    
+    <cm:property-placeholder
+        persistent-id="soft.iot.dlt.client.tangle"
+        update-strategy="reload">
+        <cm:default-properties>
+            <cm:property name="protocol" value="https" />
+            <cm:property name="DLT_URL" value="nodes.devnet.iota.org" />
+            <cm:property name="DLT_PORT" value="443" />
+            <cm:property name="DEPTH" value="443" />
+            <cm:property name="MWM" value="9" />
+            <cm:property name="SECURITY_LEVEL" value="2" />
+            <cm:property name="VALUE" value="0" />
+            <cm:property name="BUFFER_MAX_LEN" value="128" />
+        </cm:default-properties>
+    </cm:property-placeholder>
+    
+    <service
+        id="ILedgerWriterService"
+        ref="ledgerWriter"
+        interface="dlt.client.tangle.services.ILedgerWriter"/>
+    
+    <service
+        id="ILedgerReaderService"
+        ref="ledgerReader"
+        interface="dlt.client.tangle.services.ILedgerReader"/>
+  
+    <bean
+        id="ZMQServer"
+        class="dlt.client.tangle.model.ZMQServer"
+        init-method="start"
+        destroy-method="stop">
+        <argument value="${BUFFER_MAX_LEN}"/>
+    </bean>
+    
+    <bean
+        id="ledgerReader"
+        class="dlt.client.tangle.model.LedgerReader"
+        init-method="start"
+        destroy-method="stop">
+        <property name="ZMQServer" ref="ZMQServer"/>
+    </bean>
+    
+    <bean
+        id="ledgerWriter"
+        class="dlt.client.tangle.model.LedgerWriter"
+        init-method="start"
+        destroy-method="stop">
+        <argument value="${protocol}"/>
+        <argument value="${DLT_URL}"/>
+        <argument value="${DLT_PORT}"/>
+        <argument value="${BUFFER_MAX_LEN}"/>
+    </bean>
+
+</blueprint>
