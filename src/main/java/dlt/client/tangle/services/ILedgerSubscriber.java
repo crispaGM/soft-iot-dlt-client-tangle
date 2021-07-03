@@ -1,5 +1,6 @@
 package dlt.client.tangle.services;
 
+
 /**
  *
  * @author Uellington Damasceno
@@ -7,4 +8,5 @@ package dlt.client.tangle.services;
 public interface ILedgerSubscriber {
 
     public void update(Object object);
+    
 }

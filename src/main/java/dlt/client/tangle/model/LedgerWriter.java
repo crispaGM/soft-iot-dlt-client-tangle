@@ -2,6 +2,7 @@ package dlt.client.tangle.model;
 
 import dlt.client.tangle.services.ILedgerWriter;
 
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -14,6 +15,7 @@ import org.iota.jota.utils.SeedRandomGenerator;
 import org.iota.jota.utils.TrytesConverter;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.stream.JsonReader;
 
 
 /**
@@ -82,8 +84,12 @@ public class LedgerWriter implements ILedgerWriter, Runnable {
 public Transaction getTransactionByHash(String hashTransaction) {
 	GetBundleResponse response = api.getBundle(hashTransaction);
     String transactionString =  TrytesConverter.trytesToAscii(response.getTransactions().get(0).getSignatureFragments().substring(0,2186));
-    
-	Transaction transaction = new Gson().fromJson(transactionString, Transaction.class);
+   
+    Gson gson = new Gson();
+	JsonReader reader = new JsonReader(new StringReader(transactionString));
+	reader.setLenient(true);
+	Transaction transaction = gson.fromJson(reader, Transaction.class);
+	
 	
 	return transaction; 
 

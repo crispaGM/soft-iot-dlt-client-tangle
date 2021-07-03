@@ -51,15 +51,19 @@ public class ZMQServer implements Runnable {
     	socket.connect("tcp://zmq.devnet.iota.org:5556");
     	socket.subscribe("tx");
     	socket.subscribe("sn");
+    	System.out.println(this.server.isInterrupted());
 
     	while (!this.server.isInterrupted()) {
+
     		byte[] reply = socket.recv(0);
+
     	    String[] data = (new String(reply).split(" "));
     	    if(data[0].equals("tx")) {
         	    try {
 
         	    	if(data[2].equals(address)) {
-        	    		this.DLTInboundBuffer.put(data[1]);
+        	    		System.out.println("MENSAGEM CHEGOU NO ZMQ");
+        	    		this.DLTInboundBuffer.put("tx/"+data[1]);
         	    	}
         	    	
 				} catch (InterruptedException e) {
@@ -72,8 +76,9 @@ public class ZMQServer implements Runnable {
     	    	 try {
 
     	    		 if(data[3].equals(address)) {
+         	    		System.out.println("MENSAGEM CHEGOU NO ZMQ");
 
-    	    			 this.DLTInboundBuffer.put(data[2]);
+    	    			 this.DLTInboundBuffer.put("sn/"+data[2]);
     	    			 
     	    		 }
  				} catch (InterruptedException e) {

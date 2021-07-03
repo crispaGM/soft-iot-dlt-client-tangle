@@ -37,19 +37,28 @@ public class LedgerReader implements ILedgerReader, Runnable {
     public void setZMQServer(ZMQServer server) {
         this.server = server;
     }
-
     @Override
     public void subscribe(String topic, ILedgerSubscriber subscriber) {
-        if (topic != null) {
+		System.out.println("DEU SUB");
+
+    	if (topic != null) {        
             Set<ILedgerSubscriber> subscribers = this.topics.get(topic);
+    		System.out.println("Olhando o subscriber");
+    		System.out.println(subscribers);
+
             if (subscribers != null) {
+
                 subscribers.add(subscriber);
             } else {
+
                 subscribers = new HashSet();
                 subscribers.add(subscriber);
                 this.topics.put(topic, subscribers);
             }
         }
+		System.out.println("Os topicos");
+		System.out.println(this.topics.toString());
+
     }
 
     @Override
@@ -59,6 +68,7 @@ public class LedgerReader implements ILedgerReader, Runnable {
             if (subscribers != null && !subscribers.isEmpty()) {
                 subscribers.remove(subscriber);
             } else {
+            	
                 subscribers = new HashSet();
                 this.topics.put(topic, subscribers);
             }
@@ -67,10 +77,15 @@ public class LedgerReader implements ILedgerReader, Runnable {
 
     @Override
     public void run() {
-        while (!this.DLTInboundMonitor.isInterrupted()) {
+
+    	while (!this.DLTInboundMonitor.isInterrupted()) {
             try {
             	
-            	message = this.server.take();
+            	String data[] = this.server.take().split("/");
+
+            	String topic = data[0];
+            	String message = data[1];
+            	notifyAll(topic,message);
  	    		
 
             } catch (InterruptedException ex) {
@@ -80,9 +95,13 @@ public class LedgerReader implements ILedgerReader, Runnable {
     }
 
     private void notifyAll(String topic, Object object) {
-        if (topic != null && !topic.isEmpty()) {
+        System.out.println("NOTIFICANDO TODOS");
+    	if (topic != null && !topic.isEmpty()) {
+    		System.out.println("TOPICOS");
+    		System.out.println(this.topics.toString());
             Set<ILedgerSubscriber> subscribers = this.topics.get(topic);
             if (subscribers != null && !subscribers.isEmpty()) {
+            	System.out.println("NOTIFICOU HARD");
                 subscribers.forEach(sub -> sub.update(object));
             }
         }

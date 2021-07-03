@@ -15,7 +15,7 @@ public class Transaction {
     private String group;
     private String target;
     private long timestamp;
-    private String deviceSwapId;
+    private String deviceSwap;
 	public TransactionType getType() {
 		return type;
 	}
@@ -64,12 +64,13 @@ public class Transaction {
 	public void setSource(String source) {
 		this.source = source;
 	}
-	public String getDeviceSwapId() {
-		return deviceSwapId;
+	public String getDeviceSwap() {
+		return deviceSwap;
 	}
-	public void setDeviceSwapId(String deviceSwapId) {
-		this.deviceSwapId = deviceSwapId;
+	public void setDeviceSwap(String deviceSwapId) {
+		this.deviceSwap = deviceSwapId;
 	}
+	
 	
 	
 
