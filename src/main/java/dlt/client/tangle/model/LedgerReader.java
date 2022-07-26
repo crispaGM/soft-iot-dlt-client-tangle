@@ -9,7 +9,7 @@ import java.util.Set;
 
 /**
  *
- * @author Uellington Damasceno
+ * @author  Antonio Crispim,Uellington Damasceno
  * @version 0.1.0
  */
 public class LedgerReader implements ILedgerReader, Runnable {
@@ -17,7 +17,7 @@ public class LedgerReader implements ILedgerReader, Runnable {
     private Thread DLTInboundMonitor;
     private final Map<String, Set<ILedgerSubscriber>> topics;
     private ZMQServer server;
-    private String message;
+
     public LedgerReader() {
         this.topics = new HashMap();
     }
@@ -31,34 +31,27 @@ public class LedgerReader implements ILedgerReader, Runnable {
     }
 
     public void stop() {
+        this.server.stop();
         this.DLTInboundMonitor.interrupt();
     }
 
     public void setZMQServer(ZMQServer server) {
         this.server = server;
     }
+
     @Override
     public void subscribe(String topic, ILedgerSubscriber subscriber) {
-		System.out.println("DEU SUB");
-
-    	if (topic != null) {        
+        if (topic != null) {
             Set<ILedgerSubscriber> subscribers = this.topics.get(topic);
-    		System.out.println("Olhando o subscriber");
-    		System.out.println(subscribers);
-
             if (subscribers != null) {
-
                 subscribers.add(subscriber);
             } else {
-
                 subscribers = new HashSet();
                 subscribers.add(subscriber);
                 this.topics.put(topic, subscribers);
+                this.server.subscribe(topic);
             }
         }
-		System.out.println("Os topicos");
-		System.out.println(this.topics.toString());
-
     }
 
     @Override
@@ -67,27 +60,26 @@ public class LedgerReader implements ILedgerReader, Runnable {
             Set<ILedgerSubscriber> subscribers = this.topics.get(topic);
             if (subscribers != null && !subscribers.isEmpty()) {
                 subscribers.remove(subscriber);
-            } else {
-            	
-                subscribers = new HashSet();
-                this.topics.put(topic, subscribers);
-            }
+                if (subscribers.isEmpty()) {
+                    this.server.unsubscribe(topic);
+                }
+            } 
         }
     }
 
     @Override
     public void run() {
-
-    	while (!this.DLTInboundMonitor.isInterrupted()) {
+        while (!this.DLTInboundMonitor.isInterrupted()) {
             try {
-            	
-            	String data[] = this.server.take().split("/");
+                String receivedMessage = this.server.take();
 
-            	String topic = data[0];
-            	String message = data[1];
-            	notifyAll(topic,message);
- 	    		
+                if (receivedMessage != null && receivedMessage.contains("/")) {
 
+                    String[] data = receivedMessage.split("/");
+                    String topic = data[0];
+                    String message = data[1];
+                    notifyAll(topic, message);
+                }
             } catch (InterruptedException ex) {
                 this.DLTInboundMonitor.interrupt();
             }
@@ -95,27 +87,14 @@ public class LedgerReader implements ILedgerReader, Runnable {
     }
 
     private void notifyAll(String topic, Object object) {
-        System.out.println("NOTIFICANDO TODOS");
-    	if (topic != null && !topic.isEmpty()) {
-    		System.out.println("TOPICOS");
-    		System.out.println(this.topics.toString());
+    	
+        if (topic != null && !topic.isEmpty()) {
             Set<ILedgerSubscriber> subscribers = this.topics.get(topic);
             if (subscribers != null && !subscribers.isEmpty()) {
-            	System.out.println("NOTIFICOU HARD");
+
                 subscribers.forEach(sub -> sub.update(object));
             }
         }
     }
-    
-    public String getMessage() {
-    	return this.message;
-    }
-    
-    public Thread getDLTInboundMonitor() {
-    	return this.DLTInboundMonitor;
-    	
-    }
-    
-    
 
 }

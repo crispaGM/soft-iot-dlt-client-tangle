@@ -10,9 +10,4 @@ public interface ILedgerReader {
     public void subscribe(String topic, ILedgerSubscriber subscriber);
 
     public void unsubscribe(String topic, ILedgerSubscriber subscriber);
-    
-    public String getMessage();
-    // TODO remover (Revisar)
-    public Thread getDLTInboundMonitor();
-
 }
